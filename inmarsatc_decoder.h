@@ -292,7 +292,7 @@ namespace inmarsatc {
                 // than we'd like for K=7, especially since we chain back every 8 bits.
                 // But it fits so nicely into a 32-bit machine word...
                 struct State {
-                    ulong path; // Decoded path to this state
+                    unsigned long path; // Decoded path to this state
                     long metric; // Cumulative metric to this state
                 };
         };
