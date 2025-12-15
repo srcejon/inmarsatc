@@ -20,7 +20,7 @@ namespace inmarsatc {
         double FIR::filter() {
             int m = psLength - 1;
             int n = psLength;
-            double y[n];
+            double *y = new double[n];
             for(int yi = 0; yi < n; yi++) {
                 double t = 0.0;
                 for(int bi = (m - 1); bi >= 0; bi--) {
@@ -31,7 +31,9 @@ namespace inmarsatc {
                 }
                 y[yi] = t;
             }
-            return y[psLength - 1];
+            double ret = y[psLength - 1];
+            delete[] y;
+            return ret;
         }
         void FIR::resetFilter() {
             prevSamples[0] = 0;

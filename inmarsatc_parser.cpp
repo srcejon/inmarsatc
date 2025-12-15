@@ -494,12 +494,13 @@ namespace inmarsatc {
             if(*pos + 8 + addressLength >= inputFrame.length) {
                 return ret;
             }
-            uint8_t address[addressLength];
+            uint8_t *address = new uint8_t[addressLength];
             std::copy(&inputFrame.decodedFrame[*pos+8], &inputFrame.decodedFrame[*pos+8+addressLength], address);
             std::ostringstream os;
             for(int i = 0; i < addressLength - 1; i++) {
                 os << std::setfill('0') << std::setw(2) << std::right << std::hex << (uint16_t)address[i + 1];
             }
+            delete[] address;
             std::string addressHex = os.str();
             int payloadLength = ret.packetLength - 2 - 8 - addressLength;
             int k = *pos + 8 + addressLength;
