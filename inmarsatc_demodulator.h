@@ -127,8 +127,8 @@ namespace inmarsatc {
                 // this implementation of a Costas loop tracks easier to the left, so we set the
                 // center frequency on purpuse a bit higher that where we expect to find the sync
                 #define DEMODULATOR_DEFAULT_FREQ 2600.0
-                #define DEMODULATOR_LOW_FREQ 500.0
-                #define DEMODULATOR_HIGH_FREQ 4500.0
+                #define DEMODULATOR_LOW_FREQ 500
+                #define DEMODULATOR_HIGH_FREQ 4500
                 double freq = DEMODULATOR_DEFAULT_FREQ;
                 std::mutex freq_mtx;
                 const double alpha = DEMODULATOR_ALPHA;

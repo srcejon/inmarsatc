@@ -143,8 +143,8 @@ namespace inmarsatc {
             int networkVersion = inputFrame.decodedFrame[*pos + 1];
             ret.frameNumber = inputFrame.decodedFrame[*pos + 2] << 8 | inputFrame.decodedFrame[*pos + 3];
             double timestamp_seconds_d = ret.frameNumber * 8.64;
-            int timestamp_hours = floor(timestamp_seconds_d/3600.0);
-            int timestamp_min = floor((((int)timestamp_seconds_d)%3600)/60.0);
+            int timestamp_hours = (int)floor(timestamp_seconds_d/3600.0);
+            int timestamp_min = (int)floor((((int)timestamp_seconds_d)%3600)/60.0);
             int timestamp_sec = ((int)timestamp_seconds_d)%60;
             int timestamp_msec = (((int)(timestamp_seconds_d*1000))%1000);
             std::string timestamp_str = std::to_string(timestamp_hours) + ":" + std::to_string(timestamp_min) + ":" + std::to_string(timestamp_sec) + "." + std::to_string(timestamp_msec);
@@ -844,7 +844,7 @@ namespace inmarsatc {
             if (!checkAll) {
                 check = std::min(check, (int)data.size()-2);
             } else {
-                check = data.size();
+                check = (int)data.size();
             }
             for (int i = 0; i < check; i++) {
                 char chr = (char)(data[i] & 0x7F);
@@ -1145,7 +1145,7 @@ namespace inmarsatc {
                         for(int i = 0; i < (int)multiStreamFrameElements.packetData.size(); i++) {
                             ndfa.decodedFrame[i] = multiStreamFrameElements.packetData[i];
                         }
-                        ndfa.length = multiStreamFrameElements.packetData.size();
+                        ndfa.length = (int)multiStreamFrameElements.packetData.size();
                         ndfa.frameNumber = inputFrame.frameNumber;
                         ndfa.BER = inputFrame.BER;
                         ndfa.isHardDecision = inputFrame.isHardDecision;
