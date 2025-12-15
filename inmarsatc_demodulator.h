@@ -92,7 +92,7 @@ namespace inmarsatc {
                 double mAGC;
         };
 
-        class INMARSATC_EXPORT Demodulator {
+        class Demodulator {
             public:
                 #define DEMODULATOR_SYMBOLSPERCHUNK 5000
                 struct demodulator_result {
@@ -100,22 +100,22 @@ namespace inmarsatc {
                     uint8_t bitsDemodulated[DEMODULATOR_SYMBOLSPERCHUNK];
                 };
 
-                Demodulator();
-                bool isCmaEnabled();
-                bool isAgcEnabled();
-                int getLowFreq();
-                int getHighFreq();
-                double getCenterFreq();
-                bool getIsInSync();
-                int getNoSyncCount();
-                std::complex<double> getScatterPoint();
-                void setCmaEnabled(bool cmaEnabled);
-                void setAgcEnabled(bool agcEnabled);
-                void setLowFreq(int lowFreq);
-                void setHighFreq(int highFreq);
-                void setCenterFreq(double centerFreq);
-                void cmaReset();
-                std::vector<demodulator_result> demodulate(std::complex<double> samples[], int length);
+                INMARSATC_EXPORT Demodulator();
+                INMARSATC_EXPORT bool isCmaEnabled();
+                INMARSATC_EXPORT bool isAgcEnabled();
+                INMARSATC_EXPORT int getLowFreq();
+                INMARSATC_EXPORT int getHighFreq();
+                INMARSATC_EXPORT double getCenterFreq();
+                INMARSATC_EXPORT bool getIsInSync();
+                INMARSATC_EXPORT int getNoSyncCount();
+                INMARSATC_EXPORT std::complex<double> getScatterPoint();
+                INMARSATC_EXPORT void setCmaEnabled(bool cmaEnabled);
+                INMARSATC_EXPORT void setAgcEnabled(bool agcEnabled);
+                INMARSATC_EXPORT void setLowFreq(int lowFreq);
+                INMARSATC_EXPORT void setHighFreq(int highFreq);
+                INMARSATC_EXPORT void setCenterFreq(double centerFreq);
+                INMARSATC_EXPORT void cmaReset();
+                INMARSATC_EXPORT std::vector<demodulator_result> demodulate(std::complex<double> samples[], int length);
 
             private:
                 #define DEMODULATOR_SYMBOLRATE 1200.0
