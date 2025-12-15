@@ -10,6 +10,13 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 endif()
 include(GNUInstallDirs)
 
+if(WIN32)
+    add_compile_definitions(
+      NOMINMAX
+      _USE_MATH_DEFINES
+    )
+endif()
+
 add_library(inmarsatc_demodulator SHARED
   inmarsatc_demodulator.cpp
   inmarsatc_demodulator.h
