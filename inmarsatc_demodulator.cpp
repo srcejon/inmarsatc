@@ -293,7 +293,7 @@ namespace inmarsatc {
             this->hiFreq = highFreq;
         }
         void Demodulator::setCenterFreq(double centerFreq) {
-            freq_mtx.try_lock();
+            freq_mtx.lock();
             //this->freq = centerFreq;
             this->omega = (centerFreq * (2.0 * M_PI)) / DEMODULATOR_SAMPLERATE;
             freq_mtx.unlock();
@@ -327,7 +327,7 @@ namespace inmarsatc {
             //process current set of samples
             double err_summed = 0;
             for(int i = 0; i < length; i++) {
-                freq_mtx.try_lock();
+                freq_mtx.lock();
                 // Costas classic carrier recovery, ignore/eliminate the phase info)
                 // Use both sin and cos from the VCO and create the voltage by combining them
                 freq = (omega * DEMODULATOR_SAMPLERATE) / (2.0 * M_PI);
