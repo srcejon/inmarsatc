@@ -20,6 +20,13 @@
 #include <inmarsatc_demodulator.h>
 
 namespace inmarsatc {
+
+#ifdef _MSC_VER
+    typedef std::chrono::time_point<std::chrono::system_clock> timestamp_t;
+#else
+    typedef std::chrono::time_point<std::chrono::high_resolution_clock> timestamp_t;
+#endif
+
     namespace decoder {
 
         class UWFinder {
@@ -332,7 +339,7 @@ namespace inmarsatc {
                     int length;
                     uint8_t descramblerFrame[DESCRAMBLER_FRAME_LENGTH];
                     int frameNumber;
-                    std::chrono::time_point<std::chrono::high_resolution_clock> timestamp;
+                    timestamp_t timestamp;
                 };
                 Descrambler();
                 descrambler_result decode(uint8_t viterbiFrame[VITERBIDECODER_FRAME_LENGTH]);
@@ -351,7 +358,7 @@ namespace inmarsatc {
                     uint8_t decodedFrame[DESCRAMBLER_FRAME_LENGTH];
                     int length;
                     int frameNumber;
-                    std::chrono::time_point<std::chrono::high_resolution_clock> timestamp;
+                    timestamp_t timestamp;
                     bool isHardDecision;
                     bool isReversedPolarity;
                     bool isMidStreamReversePolarity;
