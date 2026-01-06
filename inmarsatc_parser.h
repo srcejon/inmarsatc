@@ -29,7 +29,7 @@ namespace inmarsatc {
                     int multiFramePacketDescriptor;
                     bool isReady;
                     std::vector<uint8_t> packetData;
-                    int firstPartCount;
+                    int firstPartCount = 0;
                 };
                 #define PACKETDECODER_PRESENTATION_IA5 0
                 #define PACKETDECODER_PRESENTATION_ITA2 6
