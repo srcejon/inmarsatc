@@ -94,6 +94,7 @@ namespace inmarsatc {
                 static std::string getServices_short(uint8_t is8);
                 static std::string getServices(int iss);
                 static std::string getDescriptorAsText(uint8_t descriptor_b);
+                static std::string PacketDecoder::getCommandMeaning(uint8_t command);
         };
 
         class Ita2Decoder {
