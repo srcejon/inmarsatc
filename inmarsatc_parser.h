@@ -44,7 +44,7 @@ namespace inmarsatc {
                 struct packetDecoder_result {
                     bool isDecodedPacket;
                     int frameNumber;
-                    timestamp_t timestamp;
+                    std::chrono::time_point<std::chrono::system_clock> timestamp;
                     uint8_t packetDescriptor;
                     int packetLength;
                     int decodingStage;
