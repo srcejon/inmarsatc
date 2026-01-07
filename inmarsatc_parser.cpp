@@ -12,8 +12,8 @@ namespace inmarsatc {
             ret.packetLength = 640 - *pos;
             // Packet descriptor
             ret.packetDescriptor = inputFrame.decodedFrame[*pos];
-            /// There are 2 variations of packet descriptor
-            /// Short packet descriptor and Medium packet descriptor
+            /// There are 3 variations of packet descriptor
+            /// Short packet descriptor, medium packet descriptor and large packet descriptor
             /// They give us the packet lengths
             if (ret.packetDescriptor >> 7 == 0) {
                 /// Short packet descriptor
@@ -23,6 +23,11 @@ namespace inmarsatc {
                 /// Medium packet descriptor
                 /// The packet length including CRC does not include the first 2 bytes, we add 2
                 ret.packetLength = inputFrame.decodedFrame[*pos + 1] + 2;
+            } else if (ret.packetDescriptor >> 6 == 0x03) {
+                /// Large packet descriptor
+                /// The packet length including CRC does not include the first 3 bytes, we add 3
+                /// However, inputFrame.decodedFrame is only 640 bytes, so this isn't currently supported
+                //ret.packetLength = ((inputFrame.decodedFrame[*pos + 1] << 8) | inputFrame.decodedFrame[*pos + 2]) + 3;
             }
             // At this stage we do not know for sure if the CRC is correct.
             /// We compute the 2-byte CRC and compare with the packet 2-byte CRC
@@ -955,73 +960,184 @@ namespace inmarsatc {
         }
         std::string PacketDecoder::getDescriptorAsText(uint8_t descriptor_b) {
             std::string descriptor;
-            switch(descriptor_b) {
-                case 0x27:
-                    descriptor = "Logical Channel Clear";
-                    break;
-                case 0x2A:
-                    descriptor = "Inbound Message Ack";
-                    break;
-                case 0x08:
-                    descriptor = "Acknowledgement Request";
-                    break;
-                case 0x6C:
-                    descriptor = "Signalling Channel";
-                    break;
-                case 0x7D:
-                    descriptor = "Bulletin Board";
-                    break;
-                case 0x81:
-                    descriptor = "Announcement";
-                    break;
-                case 0x83:
-                    descriptor = "Logical Channel Assignment";
-                    break;
-                case 0x91:
-                    descriptor = "Distress Alert Ack";
-                    break;
-                case 0x92:
-                    descriptor = "Login Ack";
-                    break;
-                case 0x9A:
-                    descriptor = "Enhanced Data Report Ack";
-                    break;
-                case 0xA0:
-                    descriptor = "Distress Test Request";
-                    break;
-                case 0xA3:
-                    descriptor = "Individual Poll";
-                    break;
-                case 0xA8:
-                    descriptor = "Confirmation";
-                    break;
-                case 0xAA:
-                    descriptor = "Message";
-                    break;
-                case 0xAB:
-                    descriptor = "Les List";
-                    break;
-                case 0xAC:
-                    descriptor = "Request Status";
-                    break;
-                case 0xAD:
-                    descriptor = "Test Result";
-                    break;
-                case 0xB1:
-                    descriptor = "EGC double header, part 1";
-                    break;
-                case 0xB2:
-                    descriptor = "EGC double header, part 2";
-                    break;
-                case 0xBD:
-                    descriptor = "Multiframe Packet Start";
-                    break;
-                case 0xBE:
-                    descriptor = "Multiframe Packet Continue";
-                    break;
-                default:
-                    descriptor = "Unknown";
-                    break;
+            uint8_t type;
+            if (descriptor_b >> 7 == 0) {
+                type = descriptor_b >> 4;
+            } else {
+                type = descriptor_b & 0x3f;
+            }
+            switch(type) {
+
+                // TDM packets
+
+            case 0x00:
+                descriptor = "Acknowledgement Request";
+                break;
+            case 0x01:
+                descriptor = "Announcement";
+                break;
+            case 0x02:
+                descriptor = "Clear"; // Was  "Logical Channel Clear"
+                break;
+            case 0x03:
+                descriptor = "Logical Channel Assignment";
+                break;
+            case 0x04:
+                descriptor = "LES TDM Channel Descriptor Packet";
+                break;
+            case 0x05:
+                descriptor = "Network Monitor Packet";
+                break;
+            case 0x06:
+                descriptor = "Signalling Channel Descriptor";
+                break;
+            case 0x07:
+                descriptor = "Bulletin Board";
+                break;
+
+            case 0x10:
+                descriptor = "Acknowledgement";
+                break;
+            case 0x11:
+                descriptor = "Distress Alert Ack";
+                break;
+            case 0x12:
+                descriptor = "Login Ack";
+                break;
+            case 0x13:
+                descriptor = "Logout Ack";
+                break;
+            case 0x19:
+                descriptor = "Forced Clear";
+                break;
+            case 0x1a:
+                descriptor = "Enhanced Data Report Ack";
+                break;
+
+            case 0x20:
+                descriptor = "Distress Test Request";
+                break;
+            case 0x21:
+                descriptor = "Area Poll";
+                break;
+            case 0x22:
+                descriptor = "Group Poll";
+                break;
+            case 0x23:
+                descriptor = "Individual Poll";
+                break;
+            case 0x24:
+                descriptor = "Mobile to Base Station Poll";
+                break;
+            case 0x25:
+                descriptor = "Mobile to Mobile Poll";
+                break;
+            case 0x28:
+                descriptor = "Confirmation";
+                break;
+            case 0x29:
+                descriptor = "Message Status";
+                break;
+            case 0x2a:
+                descriptor = "Message";
+                break;
+            case 0x2b:
+                descriptor = "Network Update"; // Was  "Les List"
+                break;
+            case 0x2c:
+                descriptor = "Request Status";
+                break;
+            case 0x2d:
+                descriptor = "Test Result";
+                break;
+
+            case 0x30:
+                descriptor = "EGC (Single Header)";
+                break;
+            case 0x31:
+                descriptor = "EGC (First of Double Header)"; // Was "EGC double header, part 1"
+                break;
+            case 0x32:
+                descriptor = "EGC (Second of Double Header)"; // Was "EGC double header, part 2"
+                break;
+            case 0x3d:
+                descriptor = "Continued Packet A"; // Was "Multiframe Packet Start"
+                break;
+            case 0x3e:
+                descriptor = "Continued Packet B"; // Was "Multiframe Packet Contine"
+                break;
+
+                // Interstation packets
+
+                //case 0x04:
+                //    descriptor = "Signalling Packet Envelope";
+                //    break;
+            case 0x08:
+                descriptor = "Area Poll Status";
+                break;
+            case 0x09:
+                descriptor = "Group Poll Status";
+                break;
+            case 0x0a:
+                descriptor = "Block Update Start";
+                break;
+            case 0x0b:
+                descriptor = "Block Update End";
+                break;
+            case 0x0c:
+                descriptor = "Commission Request";
+                break;
+            case 0x1f:
+                descriptor = "Enhanced Registration";
+                break;
+                //case 0x24:
+                //    descriptor = "Network Record";
+                //    break;
+                //case 0x25:
+                //    descriptor = "Registration";
+                //    break;
+            case 0x26:
+                descriptor = "Update Request";
+                break;
+            case 0x27:
+                descriptor = "System Message";
+                break;
+            case 0x2f:
+                descriptor = "Registration Update Request";
+                break;
+            case 0x33:
+                descriptor = "EGC Ack";
+                break;
+            case 0x34:
+                descriptor = "MES Status";
+                break;
+            case 0x35:
+                descriptor = "MES Status Request";
+                break;
+            case 0x36:
+                descriptor = "MES Status Request + Announcement";
+                break;
+            case 0x37:
+                descriptor = "Cancel Announcement";
+                break;
+            case 0x38:
+                descriptor = "TDM Release Ack";
+                break;
+            case 0x39:
+                descriptor = "TDM Release";
+                break;
+            case 0x3a:
+                descriptor = "TDM Release Request";
+                break;
+            case 0x3b:
+                descriptor = "TDM Request";
+                break;
+            case 0x3c:
+                descriptor = "TDM Request Response";
+                break;
+            default:
+                descriptor = "Unknown: " + std::to_string(descriptor_b);
+                break;
             }
             return descriptor;
         }
