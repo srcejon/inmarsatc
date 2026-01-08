@@ -346,7 +346,7 @@ namespace inmarsatc {
             uint8_t sequenceNo = inputFrame.decodedFrame[*pos + 11];
             std::ostringstream os;
             if(ret.packetLength >= 38) {
-                int j = *pos + 12;
+                int j = *pos + 13;
                 std::string shortMessage;
                 for(int i = 0; j < *pos + ret.packetLength - 2; i++) {
                     shortMessage += (char)inputFrame.decodedFrame[j] & 0x7F; //x-IA5 encoding
@@ -367,8 +367,9 @@ namespace inmarsatc {
             ret.packetVars.insert(std::pair<std::string, std::string>("subAddress", std::to_string(subAddress)));
             ret.packetVars.insert(std::pair<std::string, std::string>("dataNetworkId", std::to_string(dataNetworkId)));
             ret.packetVars.insert(std::pair<std::string, std::string>("response", std::to_string(response)));
+            ret.packetVars.insert(std::pair<std::string, std::string>("responseText", getPollResponseAsText(response)));
             ret.packetVars.insert(std::pair<std::string, std::string>("command", std::to_string(command)));
-            ret.packetVars.insert(std::pair<std::string, std::string>("commandMeaning", getCommandMeaning(command)));
+            ret.packetVars.insert(std::pair<std::string, std::string>("commandText", getCommandAsText(command)));
             ret.packetVars.insert(std::pair<std::string, std::string>("sequenceNo", std::to_string(sequenceNo)));
             ret.packetVars.insert(std::pair<std::string, std::string>("unknown1Hex", unknown1Hex));
             return ret;
@@ -1149,50 +1150,72 @@ namespace inmarsatc {
             }
             return descriptor;
         }
-        std::string PacketDecoder::getCommandMeaning(uint8_t command) {
-            std::string commandMeaning;
+        std::string PacketDecoder::getCommandAsText(uint8_t command) {
+            std::string commandString;
             switch (command & 0x7f) {
             case 0x00:
-                commandMeaning = "Send Unreserved Report as required in Response";
+                commandString = "Send Unreserved Report as required in Response";
                 break;
             case 0x01:
-                commandMeaning = "Program Reserved Data Reporting";
+                commandString = "Program Reserved Data Reporting";
                 break;
             case 0x02:
-                commandMeaning = "Initiate Reserved Data Reporting";
+                commandString = "Initiate Reserved Data Reporting";
                 break;
             case 0x03:
-                commandMeaning = "Stop Reserved Data Reporting";
+                commandString = "Stop Reserved Data Reporting";
                 break;
             case 0x04:
-                commandMeaning = "Program Unserved Data Reporting";
+                commandString = "Program Unserved Data Reporting";
                 break;
             case 0x05:
-                commandMeaning = "Initiate Unreserved Data Reporting";
+                commandString = "Initiate Unreserved Data Reporting";
                 break;
             case 0x06:
-                commandMeaning = "Stop Unreserved Data Reporting";
+                commandString = "Stop Unreserved Data Reporting";
                 break;
             case 0x07:
-                commandMeaning = "Define Macro Encoded Message";
+                commandString = "Define Macro Encoded Message";
                 break;
             case 0x08:
-                commandMeaning = "Macro Encoded Message";
+                commandString = "Macro Encoded Message";
                 break;
             case 0x09:
-                commandMeaning = "Data Transmission";
+                commandString = "Data Transmission";
                 break;
             case 0x0a:
-                commandMeaning = "Download DNID";
+                commandString = "Download DNID";
                 break;
             case 0x0b:
-                commandMeaning = "Delete DNID";
+                commandString = "Delete DNID";
                 break;
             default:
-                commandMeaning = "Unknown: " + std::to_string(command);
+                commandString = "Unknown: " + std::to_string(command);
                 break;
             }
-            return commandMeaning;
+            return commandString;
+        }
+        std::string PacketDecoder::getPollResponseAsText(uint8_t response)
+        {
+            std::string responseString;
+            switch (response) {
+            case 0x00:
+                responseString = "No Response";
+                break;
+            case 0x01:
+                responseString = "Data Report";
+                break;
+            case 0x02:
+                responseString = "Message Transfer";
+                break;
+            case 0x03:
+                responseString = "Reserved";
+                break;
+            default:
+                responseString = "Unknown: " + std::to_string(response);
+                break;
+            }
+            return responseString;
         }
         //END CLASS PacketDecoder
 
