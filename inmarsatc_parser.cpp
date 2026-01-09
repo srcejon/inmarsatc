@@ -739,6 +739,9 @@ namespace inmarsatc {
             //  1: AOR-E
             //  2: POR
             //  3: IOR
+            // LES names from Oct 2020:
+            // https://iho.int/uploads/user/Inter-Regional%20Coordination/WWNWS/WWNWS13/WWNWS13_2021_INF.1_EN_NCSR8-9-1-Analysis_and_assessment_of_the_GMDSS_performance_of_Inmarsat_Global_Limited.pdf
+            // Plus some historic
             std::string name;
             switch (value) {
                 case   2:
@@ -834,6 +837,7 @@ namespace inmarsatc {
                     name = "Singapore Telecom, Singapore";
                     break;
 
+                case 230:
                 case 330:
                     name = "Hai Phong, Vishipel, Vietnam";
                     break;
