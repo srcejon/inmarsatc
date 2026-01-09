@@ -63,16 +63,18 @@ namespace inmarsatc {
                 packetDecoder_result decode_83(decoder::Decoder::decoder_result inputFrame, int* pos);
                 packetDecoder_result decode_91(decoder::Decoder::decoder_result inputFrame, int* pos);
                 packetDecoder_result decode_92(decoder::Decoder::decoder_result inputFrame, int* pos);
+                packetDecoder_result decode_93(decoder::Decoder::decoder_result inputFrame, int* pos);
                 packetDecoder_result decode_9A(decoder::Decoder::decoder_result inputFrame, int* pos);
                 packetDecoder_result decode_A0(decoder::Decoder::decoder_result inputFrame, int* pos);
+                packetDecoder_result decode_A1(decoder::Decoder::decoder_result inputFrame, int* pos);
+                packetDecoder_result decode_A2(decoder::Decoder::decoder_result inputFrame, int* pos);
                 packetDecoder_result decode_A3(decoder::Decoder::decoder_result inputFrame, int* pos);
                 packetDecoder_result decode_A8(decoder::Decoder::decoder_result inputFrame, int* pos);
                 packetDecoder_result decode_AA(decoder::Decoder::decoder_result inputFrame, int* pos);
                 packetDecoder_result decode_AB(decoder::Decoder::decoder_result inputFrame, int* pos);
                 packetDecoder_result decode_AC(decoder::Decoder::decoder_result inputFrame, int* pos);
                 packetDecoder_result decode_AD(decoder::Decoder::decoder_result inputFrame, int* pos);
-                packetDecoder_result decode_B1(decoder::Decoder::decoder_result inputFrame, int* pos);
-                packetDecoder_result decode_B2(decoder::Decoder::decoder_result inputFrame, int* pos);
+                packetDecoder_result decode_EGC(decoder::Decoder::decoder_result inputFrame, int* pos);
                 packetDecoder_result decode_BD(decoder::Decoder::decoder_result inputFrame, int* pos);
                 packetDecoder_result decode_BE(decoder::Decoder::decoder_result inputFrame, int* pos, packetDecoder_multiFramePacket* mfa);
             private:
@@ -96,6 +98,12 @@ namespace inmarsatc {
                 static std::string getDescriptorAsText(uint8_t descriptor_b);
                 static std::string getCommandAsText(uint8_t command);
                 static std::string getPollResponseAsText(uint8_t response);
+                static std::string getRequestStatusCodeAsText(uint8_t statusCode);
+                static std::string getServiceAsText(uint8_t service);
+                static std::string getDirectionAsText(uint8_t service);
+                static std::string getPriorityAsText(uint8_t service);
+                static std::string getPresentationAsText(uint8_t presentation);
+                static void decodePollText(packetDecoder_result& ret, decoder::Decoder::decoder_result inputFrame, int* pos, int start, uint8_t commandType);
         };
 
         class Ita2Decoder {

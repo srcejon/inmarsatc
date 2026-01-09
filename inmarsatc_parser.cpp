@@ -205,41 +205,41 @@ namespace inmarsatc {
             if(!ret.isCrc) {
                 return ret;
             }
-            ret.decodingStage = PACKETDECODER_DECODING_STAGE_PARTIAL;
+            ret.decodingStage = PACKETDECODER_DECODING_STAGE_COMPLETE;
             int mesId = inputFrame.decodedFrame[*pos + 2] << 16 | inputFrame.decodedFrame[*pos + 2 + 1] << 8 | inputFrame.decodedFrame[*pos + 1 + 2];
             int sat = inputFrame.decodedFrame[*pos + 5] >> 6 & 0x03;
             std::string satName = getSatName(sat);
             int lesId = inputFrame.decodedFrame[*pos + 5] & 0x3F;
             std::string lesName = getLesName(sat, lesId);
-            int logicalChannelNo = inputFrame.decodedFrame[*pos + 9];
             double downlinkChannelMhz = ((inputFrame.decodedFrame[*pos + 6] << 8 | inputFrame.decodedFrame[*pos + 6 + 1]) - 8000) * 0.0025 + 15305;
+            uint8_t service = inputFrame.decodedFrame[*pos + 8] >> 4;
+            uint8_t direction = (inputFrame.decodedFrame[*pos + 8] >> 2) & 0x3;
+            uint8_t priority = inputFrame.decodedFrame[*pos + 8] & 0x3;
+            int logicalChannelNo = inputFrame.decodedFrame[*pos + 9];
+            int messageReferenceNumber = inputFrame.decodedFrame[*pos + 10] << 16 | inputFrame.decodedFrame[*pos + 11] << 8 | inputFrame.decodedFrame[*pos + 12];
+            uint8_t subAddress = inputFrame.decodedFrame[*pos + 13];
             int presentation = inputFrame.decodedFrame[*pos + 14];
-            std::ostringstream os;
-            for(int i = 0; i < 1; i++) {
-                os << std::setfill('0') << std::setw(2) << std::right << std::hex << (uint16_t)inputFrame.decodedFrame[*pos + 8 + i];
-            }
-            std::string unknown1Hex = os.str();
-            os.clear();
-            for(int i = 0; i < 4; i++) {
-                os << std::setfill('0') << std::setw(2) << std::right << std::hex << (uint16_t)inputFrame.decodedFrame[*pos + 10 + i];
-            }
-            std::string unknown2Hex = os.str();
-            os.clear();
-            for(int i = 0; i < 2; i++) {
-                os << std::setfill('0') << std::setw(2) << std::right << std::hex << (uint16_t)inputFrame.decodedFrame[*pos + 15 + i];
-            }
-            std::string unknown3Hex = os.str();
+            uint8_t packets = inputFrame.decodedFrame[*pos + 15];
+            uint8_t lastCount = inputFrame.decodedFrame[*pos + 16];
             ret.packetVars.insert(std::pair<std::string, std::string>("mesId", std::to_string(mesId)));
             ret.packetVars.insert(std::pair<std::string, std::string>("sat", std::to_string(sat)));
             ret.packetVars.insert(std::pair<std::string, std::string>("satName", satName));
             ret.packetVars.insert(std::pair<std::string, std::string>("lesId", std::to_string(lesId)));
             ret.packetVars.insert(std::pair<std::string, std::string>("lesName", lesName));
-            ret.packetVars.insert(std::pair<std::string, std::string>("logicalChannelNo", std::to_string(logicalChannelNo)));
             ret.packetVars.insert(std::pair<std::string, std::string>("downlinkChannelMhz", std::to_string(downlinkChannelMhz)));
+            ret.packetVars.insert(std::pair<std::string, std::string>("service", std::to_string(service)));
+            ret.packetVars.insert(std::pair<std::string, std::string>("serviceText", getServiceAsText(service)));
+            ret.packetVars.insert(std::pair<std::string, std::string>("direction", std::to_string(direction)));
+            ret.packetVars.insert(std::pair<std::string, std::string>("directionText", getDirectionAsText(direction)));
+            ret.packetVars.insert(std::pair<std::string, std::string>("priority", std::to_string(priority)));
+            ret.packetVars.insert(std::pair<std::string, std::string>("priorityText", getPriorityAsText(priority)));
+            ret.packetVars.insert(std::pair<std::string, std::string>("logicalChannelNo", std::to_string(logicalChannelNo)));
+            ret.packetVars.insert(std::pair<std::string, std::string>("messageReferenceNumber", std::to_string(messageReferenceNumber)));
+            ret.packetVars.insert(std::pair<std::string, std::string>("subAddress", std::to_string(subAddress)));
             ret.packetVars.insert(std::pair<std::string, std::string>("presentation", std::to_string(presentation)));
-            ret.packetVars.insert(std::pair<std::string, std::string>("unknown1Hex", unknown1Hex));
-            ret.packetVars.insert(std::pair<std::string, std::string>("unknown2Hex", unknown2Hex));
-            ret.packetVars.insert(std::pair<std::string, std::string>("unknown3Hex", unknown3Hex));
+            ret.packetVars.insert(std::pair<std::string, std::string>("presentationText", getPresentationAsText(presentation)));
+            ret.packetVars.insert(std::pair<std::string, std::string>("packets", std::to_string(packets)));
+            ret.packetVars.insert(std::pair<std::string, std::string>("lastCount", std::to_string(lastCount)));
             return ret;
         }
         PacketDecoder::packetDecoder_result PacketDecoder::decode_83(decoder::Decoder::decoder_result inputFrame, int* pos) {
@@ -283,6 +283,7 @@ namespace inmarsatc {
             }
             return ret; //not implemented yet
         }
+        // Login Ack
         PacketDecoder::packetDecoder_result PacketDecoder::decode_92(decoder::Decoder::decoder_result inputFrame, int* pos) {
             PacketDecoder::packetDecoder_result ret = basicDecode(inputFrame, pos);
             if(!ret.isCrc) {
@@ -290,28 +291,31 @@ namespace inmarsatc {
             }
             ret.decodingStage = PACKETDECODER_DECODING_STAGE_COMPLETE;
             int loginAckLength = inputFrame.decodedFrame[*pos + 1];
-            std::ostringstream os;
-            for(int i = 0; i < 3; i++) {
-                os << std::setfill('0') << std::setw(2) << std::right << std::hex << (uint16_t)inputFrame.decodedFrame[*pos + 2 + i];
-            }
-            std::string les = os.str();
+            int mesId = inputFrame.decodedFrame[*pos + 2] << 16 | inputFrame.decodedFrame[*pos + 3] << 8 | inputFrame.decodedFrame[*pos + 4];
             double downlinkChannelMhz = ((inputFrame.decodedFrame[*pos + 5] << 8 | inputFrame.decodedFrame[*pos + 5 + 1]) - 8000) * 0.0025 + 1530.5;
-            os.clear();
-            for(int i = 0; i < 1; i++) {
-                os << std::setfill('0') << std::setw(2) << std::right << std::hex << (uint16_t)inputFrame.decodedFrame[*pos + 7 + i];
-            }
-            std::string stationStartHex = os.str();
             ret.packetVars.insert(std::pair<std::string, std::string>("loginAckLength", std::to_string(loginAckLength)));
+            ret.packetVars.insert(std::pair<std::string, std::string>("mesId", std::to_string(mesId)));
             ret.packetVars.insert(std::pair<std::string, std::string>("downlinkChannelMhz", std::to_string(downlinkChannelMhz)));
-            ret.packetVars.insert(std::pair<std::string, std::string>("les", les));
-            ret.packetVars.insert(std::pair<std::string, std::string>("stationStartHex", stationStartHex));
             if(loginAckLength > 7) {
+                int networkVersion = inputFrame.decodedFrame[*pos + 7];
+                ret.packetVars.insert(std::pair<std::string, std::string>("networkVersion", std::to_string(networkVersion)));
                 //stations
                 int stationCount = inputFrame.decodedFrame[*pos + 8];
                 std::string stations = getStations(inputFrame.decodedFrame, stationCount, *pos + 9);
                 ret.packetVars.insert(std::pair<std::string, std::string>("stationCount", std::to_string(stationCount)));
                 ret.packetVars.insert(std::pair<std::string, std::string>("stations", stations));
             }
+            return ret;
+        }
+        // Logout Ack
+        PacketDecoder::packetDecoder_result PacketDecoder::decode_93(decoder::Decoder::decoder_result inputFrame, int* pos) {
+            PacketDecoder::packetDecoder_result ret = basicDecode(inputFrame, pos);
+            if(!ret.isCrc) {
+                return ret;
+            }
+            ret.decodingStage = PACKETDECODER_DECODING_STAGE_COMPLETE;
+            int mesId = inputFrame.decodedFrame[*pos + 2] << 16 | inputFrame.decodedFrame[*pos + 3] << 8 | inputFrame.decodedFrame[*pos + 4];
+            ret.packetVars.insert(std::pair<std::string, std::string>("mesId", std::to_string(mesId)));
             return ret;
         }
         PacketDecoder::packetDecoder_result PacketDecoder::decode_9A(decoder::Decoder::decoder_result inputFrame, int* pos) {
@@ -328,6 +332,93 @@ namespace inmarsatc {
             }
             return ret; //not implemented yet
         }
+
+        void PacketDecoder::decodePollText(packetDecoder_result& ret, decoder::Decoder::decoder_result inputFrame, int* pos, int start, uint8_t commandType)
+        {
+            std::ostringstream os;
+            // Extract text field as binary
+            for(int i = 0; i < ret.packetLength - 14; i++) {
+                os << std::setfill('0') << std::setw(2) << std::right << std::hex << (uint16_t)inputFrame.decodedFrame[*pos + start + i];
+            }
+            std::string text = os.str();
+            if (text.length() > 0) {
+                ret.packetVars.insert(std::pair<std::string, std::string>("text", text));
+            }
+            // Now decode text field for formats we know about
+            if(ret.packetLength > start + 2) {
+                int j = *pos + start;
+                if (commandType == 0x04) {
+                    uint16_t startFrame = inputFrame.decodedFrame[j] << 8 | inputFrame.decodedFrame[j+1];
+                    j += 2;
+                    ret.packetVars.insert(std::pair<std::string, std::string>("startFrame", std::to_string(startFrame)));
+                    uint8_t interval = inputFrame.decodedFrame[j++];
+                    ret.packetVars.insert(std::pair<std::string, std::string>("interval", std::to_string(interval)));
+                } else if (commandType == 0x08) {
+                    uint8_t memId = inputFrame.decodedFrame[j++];
+                    ret.packetVars.insert(std::pair<std::string, std::string>("memId", std::to_string(memId)));
+                } else if (commandType == 0x0a) {
+                    uint8_t memberNumber = inputFrame.decodedFrame[j++];
+                    ret.packetVars.insert(std::pair<std::string, std::string>("memberNumber", std::to_string(memberNumber)));
+                }
+                std::string shortMessage;
+                for(int i = 0; j < *pos + ret.packetLength - 2; i++) {
+                    shortMessage += (char)inputFrame.decodedFrame[j] & 0x7F; //x-IA5 encoding
+                    j++;
+                }
+                if (shortMessage.length() > 0) {
+                    ret.packetVars.insert(std::pair<std::string, std::string>("shortMessage", shortMessage));
+                }
+            }
+        }
+
+        // Area Poll
+        PacketDecoder::packetDecoder_result PacketDecoder::decode_A1(decoder::Decoder::decoder_result inputFrame, int* pos) {
+            PacketDecoder::packetDecoder_result ret = basicDecode(inputFrame, pos);
+            if(!ret.isCrc) {
+                return ret;
+            }
+            return ret; //not implemented yet
+        }
+
+        // Group Poll
+        PacketDecoder::packetDecoder_result PacketDecoder::decode_A2(decoder::Decoder::decoder_result inputFrame, int* pos) {
+            PacketDecoder::packetDecoder_result ret = basicDecode(inputFrame, pos);
+            if(!ret.isCrc) {
+                return ret;
+            }
+            ret.decodingStage = PACKETDECODER_DECODING_STAGE_PARTIAL;
+            uint16_t dataNetworkId = inputFrame.decodedFrame[*pos + 2] << 8 | inputFrame.decodedFrame[*pos + 3];
+            int sat = inputFrame.decodedFrame[*pos + 4] >> 6 & 0x03;
+            std::string satName = getSatName(sat);
+            int lesId = inputFrame.decodedFrame[*pos + 4] & 0x3F;
+            std::string lesName = getLesName(sat, lesId);
+            uint16_t lesTDM = inputFrame.decodedFrame[*pos + 5] << 8 | inputFrame.decodedFrame[*pos + 6];
+            uint8_t subAddress = inputFrame.decodedFrame[*pos + 7];
+            uint8_t randomisingInterval = inputFrame.decodedFrame[*pos + 8];
+            uint8_t response = inputFrame.decodedFrame[*pos + 9] >> 6;
+            uint8_t command = inputFrame.decodedFrame[*pos + 10];
+            uint8_t commandAck = command >> 7;
+            uint8_t commandType = command & 0x7f;
+            uint8_t sequenceNo = inputFrame.decodedFrame[*pos + 11];
+            decodePollText(ret, inputFrame, pos, 12, commandType);
+            ret.packetVars.insert(std::pair<std::string, std::string>("dataNetworkId", std::to_string(dataNetworkId)));
+            ret.packetVars.insert(std::pair<std::string, std::string>("sat", std::to_string(sat)));
+            ret.packetVars.insert(std::pair<std::string, std::string>("satName", satName));
+            ret.packetVars.insert(std::pair<std::string, std::string>("lesId", std::to_string(lesId)));
+            ret.packetVars.insert(std::pair<std::string, std::string>("lesName", lesName));
+            ret.packetVars.insert(std::pair<std::string, std::string>("lesTDM", std::to_string(lesTDM)));
+            ret.packetVars.insert(std::pair<std::string, std::string>("subAddress", std::to_string(subAddress)));
+            ret.packetVars.insert(std::pair<std::string, std::string>("randomisingInterval", std::to_string(randomisingInterval)));
+            ret.packetVars.insert(std::pair<std::string, std::string>("response", std::to_string(response)));
+            ret.packetVars.insert(std::pair<std::string, std::string>("responseText", getPollResponseAsText(response)));
+            ret.packetVars.insert(std::pair<std::string, std::string>("command", std::to_string(commandType)));
+            ret.packetVars.insert(std::pair<std::string, std::string>("commandText", getCommandAsText(commandType)));
+            ret.packetVars.insert(std::pair<std::string, std::string>("commandAck", std::to_string(commandAck)));
+            ret.packetVars.insert(std::pair<std::string, std::string>("sequenceNo", std::to_string(sequenceNo)));
+            return ret;
+        }
+
+        // Individual Poll
         PacketDecoder::packetDecoder_result PacketDecoder::decode_A3(decoder::Decoder::decoder_result inputFrame, int* pos) {
             PacketDecoder::packetDecoder_result ret = basicDecode(inputFrame, pos);
             if(!ret.isCrc) {
@@ -340,25 +431,13 @@ namespace inmarsatc {
             int lesId = inputFrame.decodedFrame[*pos + 5] & 0x3F;
             std::string lesName = getLesName(sat, lesId);
             uint8_t subAddress = inputFrame.decodedFrame[*pos + 6];
-            uint16_t dataNetworkId = inputFrame.decodedFrame[*pos + 8] << 8 | inputFrame.decodedFrame[*pos + 7];
+            uint16_t dataNetworkId = inputFrame.decodedFrame[*pos + 7] << 8 | inputFrame.decodedFrame[*pos + 8];
             uint8_t response = inputFrame.decodedFrame[*pos + 9] >> 6;
             uint8_t command = inputFrame.decodedFrame[*pos + 10];
+            uint8_t commandAck = command >> 7;
+            uint8_t commandType = command & 0x7f;
             uint8_t sequenceNo = inputFrame.decodedFrame[*pos + 11];
-            std::ostringstream os;
-            if(ret.packetLength >= 38) {
-                int j = *pos + 13;
-                std::string shortMessage;
-                for(int i = 0; j < *pos + ret.packetLength - 2; i++) {
-                    shortMessage += (char)inputFrame.decodedFrame[j] & 0x7F; //x-IA5 encoding
-                    j++;
-                }
-                ret.packetVars.insert(std::pair<std::string, std::string>("shortMessage", shortMessage));
-            } else {
-                for(int i = 0; i < ret.packetLength - 6; i++) {
-                    os << std::setfill('0') << std::setw(2) << std::right << std::hex << (uint16_t)inputFrame.decodedFrame[*pos + 6 + i];
-                }
-            }
-            std::string unknown1Hex = os.str();
+            decodePollText(ret, inputFrame, pos, 12, commandType);
             ret.packetVars.insert(std::pair<std::string, std::string>("mesId", std::to_string(mesId)));
             ret.packetVars.insert(std::pair<std::string, std::string>("sat", std::to_string(sat)));
             ret.packetVars.insert(std::pair<std::string, std::string>("satName", satName));
@@ -368,50 +447,63 @@ namespace inmarsatc {
             ret.packetVars.insert(std::pair<std::string, std::string>("dataNetworkId", std::to_string(dataNetworkId)));
             ret.packetVars.insert(std::pair<std::string, std::string>("response", std::to_string(response)));
             ret.packetVars.insert(std::pair<std::string, std::string>("responseText", getPollResponseAsText(response)));
-            ret.packetVars.insert(std::pair<std::string, std::string>("command", std::to_string(command)));
-            ret.packetVars.insert(std::pair<std::string, std::string>("commandText", getCommandAsText(command)));
+            ret.packetVars.insert(std::pair<std::string, std::string>("command", std::to_string(commandType)));
+            ret.packetVars.insert(std::pair<std::string, std::string>("commandText", getCommandAsText(commandType)));
+            ret.packetVars.insert(std::pair<std::string, std::string>("commandAck", std::to_string(commandAck)));
             ret.packetVars.insert(std::pair<std::string, std::string>("sequenceNo", std::to_string(sequenceNo)));
-            ret.packetVars.insert(std::pair<std::string, std::string>("unknown1Hex", unknown1Hex));
             return ret;
         }
+        // Confirmation
         PacketDecoder::packetDecoder_result PacketDecoder::decode_A8(decoder::Decoder::decoder_result inputFrame, int* pos) {
             PacketDecoder::packetDecoder_result ret = basicDecode(inputFrame, pos);
             if(!ret.isCrc) {
                 return ret;
             }
-            ret.decodingStage = PACKETDECODER_DECODING_STAGE_PARTIAL;
-            int mesId = inputFrame.decodedFrame[*pos + 2] << 16 | inputFrame.decodedFrame[*pos + 2 + 1] << 8 | inputFrame.decodedFrame[*pos + 2 + 2];
+            ret.decodingStage = PACKETDECODER_DECODING_STAGE_COMPLETE;
+            int mesId = inputFrame.decodedFrame[*pos + 2] << 16 | inputFrame.decodedFrame[*pos + 3] << 8 | inputFrame.decodedFrame[*pos + 4];
             int sat = inputFrame.decodedFrame[*pos + 5] >> 6 & 0x03;
             std::string satName = getSatName(sat);
             int lesId = inputFrame.decodedFrame[*pos + 5] & 0x3F;
             std::string lesName = getLesName(sat, lesId);
-            std::ostringstream os;
-            for(int i = 0; i < 3; i++) {
-                os << std::setfill('0') << std::setw(2) << std::right << std::hex << (uint16_t)inputFrame.decodedFrame[*pos + 6 + i];
-            }
-            std::string unknown1Hex = os.str();
-            int shortMessageLength = inputFrame.decodedFrame[*pos + 9];
-            os.clear();
-            for(int i = 0; i < 1; i++) {
-                os << std::setfill('0') << std::setw(2) << std::right << std::hex << (uint16_t)inputFrame.decodedFrame[*pos + 10 + i];
-            }
-            std::string unknown2Hex = os.str();
-            if(shortMessageLength > 2) {
-                std::string shortMessage;
-                int j = *pos + 11;
-                for(int i = 0; j < *pos + ret.packetLength - 2; i++) {
-                    shortMessage += (char)inputFrame.decodedFrame[j] & 0x7F; //x-IA5 encoding
-                    j++;
+            int messageReferenceNumber = inputFrame.decodedFrame[*pos + 6] << 16 | inputFrame.decodedFrame[*pos + 7] << 8 | inputFrame.decodedFrame[*pos + 8];
+
+            std::string descriptors = "";
+            int j = 9;
+            while (j < ret.packetLength - 2) {
+                int descriptorLength = inputFrame.decodedFrame[*pos + j++];
+                bool status = inputFrame.decodedFrame[*pos + j] >> 7;
+                uint8_t attempts = inputFrame.decodedFrame[*pos + j++] & 0x7f;
+                int addressInfoLength = descriptorLength - 2;
+                std::string nonDeliveryCode;
+                if(!status) {
+                    for(int i = 0; i < 3; i++) {
+                        nonDeliveryCode += (char)inputFrame.decodedFrame[*pos + j++] & 0x7f;
+                    }
+                    addressInfoLength -= 3;
                 }
-                ret.packetVars.insert(std::pair<std::string, std::string>("shortMessage", shortMessage));
+                std::string address;
+                for(int i = 0; i < addressInfoLength; i++) {
+                    address += (char)inputFrame.decodedFrame[*pos + j++] & 0x7F; //x-IA5 encoding
+                }
+
+                std::string statusString = status ? "Delivered" : "Not delivered";
+                descriptors += "Status: " + statusString + "\n";
+                descriptors += "Attempts: " + std::to_string(attempts) + "\n";
+                if (!status) {
+                    descriptors += "Non-delivery Code: " + nonDeliveryCode + "\n";
+                }
+                if (address.length() > 0) {
+                    descriptors += "Address: " + address + "\n";
+                }
             }
+
             ret.packetVars.insert(std::pair<std::string, std::string>("mesId", std::to_string(mesId)));
             ret.packetVars.insert(std::pair<std::string, std::string>("sat", std::to_string(sat)));
             ret.packetVars.insert(std::pair<std::string, std::string>("satName", satName));
             ret.packetVars.insert(std::pair<std::string, std::string>("lesId", std::to_string(lesId)));
             ret.packetVars.insert(std::pair<std::string, std::string>("lesName", lesName));
-            ret.packetVars.insert(std::pair<std::string, std::string>("unknown1Hex", unknown1Hex));
-            ret.packetVars.insert(std::pair<std::string, std::string>("unknown2Hex", unknown2Hex));
+            ret.packetVars.insert(std::pair<std::string, std::string>("messageReferenceNumber", std::to_string(messageReferenceNumber)));
+            ret.packetVars.insert(std::pair<std::string, std::string>("messageStatusDescriptors", descriptors));
             return ret;
         }
         PacketDecoder::packetDecoder_result PacketDecoder::decode_AA(decoder::Decoder::decoder_result inputFrame, int* pos) {
@@ -467,7 +559,23 @@ namespace inmarsatc {
             if(!ret.isCrc) {
                 return ret;
             }
-            return ret; //not implemented yet
+            ret.decodingStage = PACKETDECODER_DECODING_STAGE_COMPLETE;
+            int mesId = inputFrame.decodedFrame[*pos + 2] << 16 | inputFrame.decodedFrame[*pos + 2 + 1] << 8 | inputFrame.decodedFrame[*pos + 2 + 2];
+            int sat = inputFrame.decodedFrame[*pos + 5] >> 6 & 0x03;
+            std::string satName = getSatName(sat);
+            int lesId = inputFrame.decodedFrame[*pos + 5] & 0x3F;
+            std::string lesName = getLesName(sat, lesId);
+            bool rejected = inputFrame.decodedFrame[*pos + 6] >> 7;
+            uint8_t statusCode = inputFrame.decodedFrame[*pos + 6] & 0x7f;
+            ret.packetVars.insert(std::pair<std::string, std::string>("mesId", std::to_string(mesId)));
+            ret.packetVars.insert(std::pair<std::string, std::string>("sat", std::to_string(sat)));
+            ret.packetVars.insert(std::pair<std::string, std::string>("satName", satName));
+            ret.packetVars.insert(std::pair<std::string, std::string>("lesId", std::to_string(lesId)));
+            ret.packetVars.insert(std::pair<std::string, std::string>("lesName", lesName));
+            ret.packetVars.insert(std::pair<std::string, std::string>("rejected", std::to_string(rejected)));
+            ret.packetVars.insert(std::pair<std::string, std::string>("statusCode", std::to_string(statusCode)));
+            ret.packetVars.insert(std::pair<std::string, std::string>("statusCodeText", getRequestStatusCodeAsText(statusCode)));
+            return ret;
         }
         PacketDecoder::packetDecoder_result PacketDecoder::decode_AD(decoder::Decoder::decoder_result inputFrame, int* pos) {
             PacketDecoder::packetDecoder_result ret = basicDecode(inputFrame, pos);
@@ -476,12 +584,12 @@ namespace inmarsatc {
             }
             return ret; //not implemented yet
         }
-        PacketDecoder::packetDecoder_result PacketDecoder::decode_B1(decoder::Decoder::decoder_result inputFrame, int* pos) {
+        PacketDecoder::packetDecoder_result PacketDecoder::decode_EGC(decoder::Decoder::decoder_result inputFrame, int* pos) {
             PacketDecoder::packetDecoder_result ret = basicDecode(inputFrame, pos);
             if(!ret.isCrc) {
                 return ret;
             }
-            ret.decodingStage = PACKETDECODER_DECODING_STAGE_PARTIAL;
+            ret.decodingStage = PACKETDECODER_DECODING_STAGE_COMPLETE;
             int messageType = inputFrame.decodedFrame[*pos + 2];
             std::string serviceCodeAndAddressName = getServiceCodeAndAddressName(messageType);
             int continuation = (inputFrame.decodedFrame[*pos + 3] & 0x80) >> 7;
@@ -491,8 +599,13 @@ namespace inmarsatc {
             int repetition = inputFrame.decodedFrame[*pos + 3] & 0x1F;
             int messageId = inputFrame.decodedFrame[*pos + 4] << 8 | inputFrame.decodedFrame[*pos + 5];
             int packetNo = inputFrame.decodedFrame[*pos + 6];
+            int presentation = inputFrame.decodedFrame[*pos + 7];
+            int sat = inputFrame.decodedFrame[*pos + 8] >> 6 & 0x3;
+            std::string satName = getSatName(sat);
+            int lesId = inputFrame.decodedFrame[*pos + 8] & 0x3f;
+            std::string lesName = getLesName(sat, lesId);
             bool isNewPayload = packetNo == 1;
-            ret.payload.presentation = inputFrame.decodedFrame[*pos + 7];
+            ret.payload.presentation = presentation;
             ret.packetVars.insert(std::pair<std::string, std::string>("messageType", std::to_string(messageType)));
             ret.packetVars.insert(std::pair<std::string, std::string>("serviceCodeAndAddressName", serviceCodeAndAddressName));
             ret.packetVars.insert(std::pair<std::string, std::string>("continuation", std::to_string(continuation)));
@@ -502,76 +615,33 @@ namespace inmarsatc {
             ret.packetVars.insert(std::pair<std::string, std::string>("repetition", std::to_string(repetition)));
             ret.packetVars.insert(std::pair<std::string, std::string>("messageId", std::to_string(messageId)));
             ret.packetVars.insert(std::pair<std::string, std::string>("packetNo", std::to_string(packetNo)));
+            ret.packetVars.insert(std::pair<std::string, std::string>("presentation", std::to_string(presentation)));
+            ret.packetVars.insert(std::pair<std::string, std::string>("presentationText", getPresentationAsText(presentation)));
+            ret.packetVars.insert(std::pair<std::string, std::string>("sat", std::to_string(sat)));
+            ret.packetVars.insert(std::pair<std::string, std::string>("satName", satName));
+            ret.packetVars.insert(std::pair<std::string, std::string>("lesId", std::to_string(lesId)));
+            ret.packetVars.insert(std::pair<std::string, std::string>("lesName", lesName));
             ret.packetVars.insert(std::pair<std::string, std::string>("isNewPayload", std::to_string(isNewPayload)));
             int addressLength = getAddressLength(messageType);
-            //NAV/MET coordinator... area... TODO
-            if(*pos + 8 + addressLength >= inputFrame.length) {
-                return ret;
+            unsigned address = 0;
+            for(int i = 0; i < addressLength; i++) {
+                address = (address << 8) | inputFrame.decodedFrame[*pos+9+i];
             }
-            uint8_t *address = new uint8_t[addressLength];
-            std::copy(&inputFrame.decodedFrame[*pos+8], &inputFrame.decodedFrame[*pos+8+addressLength], address);
+            ret.packetVars.insert(std::pair<std::string, std::string>("address", std::to_string(address)));
             std::ostringstream os;
-            for(int i = 0; i < addressLength - 1; i++) {
-                os << std::setfill('0') << std::setw(2) << std::right << std::hex << (uint16_t)address[i + 1];
+            for(int i = 0; i < addressLength; i++) {
+                os << std::setfill('0') << std::setw(2) << std::right << std::hex << (uint16_t)inputFrame.decodedFrame[*pos+9+i];
             }
-            delete[] address;
             std::string addressHex = os.str();
-            int payloadLength = ret.packetLength - 2 - 8 - addressLength;
-            int k = *pos + 8 + addressLength;
-            for(int i = 0; k < *pos + 8 + addressLength + payloadLength; i++) {
+            ret.packetVars.insert(std::pair<std::string, std::string>("addressHex", addressHex));
+            uint16_t egcChecksum = inputFrame.decodedFrame[*pos+9+addressLength] << 8 | inputFrame.decodedFrame[*pos+9+addressLength+1];
+            ret.packetVars.insert(std::pair<std::string, std::string>("egcChecksum", std::to_string(egcChecksum)));
+            int payloadLength = ret.packetLength - 2 - 9 - addressLength - 2;
+            int k = *pos + 9 + addressLength + 2;
+            for(int i = 0; k < *pos + 9 + addressLength + 2 + payloadLength; i++) {
                 ret.payload.data8Bit.push_back(inputFrame.decodedFrame[k]);
                 k++;
             }
-            ret.packetVars.insert(std::pair<std::string, std::string>("addressHex", addressHex));
-            return ret;
-        }
-        PacketDecoder::packetDecoder_result PacketDecoder::decode_B2(decoder::Decoder::decoder_result inputFrame, int* pos) {
-            PacketDecoder::packetDecoder_result ret = basicDecode(inputFrame, pos);
-            if(!ret.isCrc) {
-                return ret;
-            }
-            ret.decodingStage = PACKETDECODER_DECODING_STAGE_PARTIAL;
-            int messageType = inputFrame.decodedFrame[*pos + 2];
-            std::string serviceCodeAndAddressName = getServiceCodeAndAddressName(messageType);
-            int continuation = (inputFrame.decodedFrame[*pos + 3] & 0x80) >> 7;
-            int priority = (inputFrame.decodedFrame[*pos + 3] & 0x60) >> 5;
-            std::string priorityText = getPriority(priority);
-            bool isDistress = priority == 3;
-            int repetition = inputFrame.decodedFrame[*pos + 3] & 0x1F;
-            int messageId = inputFrame.decodedFrame[*pos + 4] << 8 | inputFrame.decodedFrame[*pos + 5];
-            int packetNo = inputFrame.decodedFrame[*pos + 6];
-            bool isNewPayload = packetNo == 1;
-            ret.payload.presentation = inputFrame.decodedFrame[*pos + 7];
-            ret.packetVars.insert(std::pair<std::string, std::string>("messageType", std::to_string(messageType)));
-            ret.packetVars.insert(std::pair<std::string, std::string>("serviceCodeAndAddressName", serviceCodeAndAddressName));
-            ret.packetVars.insert(std::pair<std::string, std::string>("continuation", std::to_string(continuation)));
-            ret.packetVars.insert(std::pair<std::string, std::string>("priority", std::to_string(priority)));
-            ret.packetVars.insert(std::pair<std::string, std::string>("priorityText", priorityText));
-            ret.packetVars.insert(std::pair<std::string, std::string>("isDistress", std::to_string(isDistress)));
-            ret.packetVars.insert(std::pair<std::string, std::string>("repetition", std::to_string(repetition)));
-            ret.packetVars.insert(std::pair<std::string, std::string>("messageId", std::to_string(messageId)));
-            ret.packetVars.insert(std::pair<std::string, std::string>("packetNo", std::to_string(packetNo)));
-            ret.packetVars.insert(std::pair<std::string, std::string>("isNewPayload", std::to_string(isNewPayload)));
-            int addressLength = getAddressLength(messageType);
-            //NAV/MET coordinator... area... TODO
-            if(*pos + 8 + addressLength >= inputFrame.length) {
-                return ret;
-            }
-            uint8_t *address = new uint8_t[addressLength];
-            std::copy(&inputFrame.decodedFrame[*pos+8], &inputFrame.decodedFrame[*pos+8+addressLength], address);
-            std::ostringstream os;
-            for(int i = 0; i < addressLength - 1; i++) {
-                os << std::setfill('0') << std::setw(2) << std::right << std::hex << (uint16_t)address[i + 1];
-            }
-            delete[] address;
-            std::string addressHex = os.str();
-            int payloadLength = ret.packetLength - 2 - 8 - addressLength;
-            int k = *pos + 8 + addressLength;
-            for(int i = 0; k < *pos + 8 + addressLength + payloadLength; i++) {
-                ret.payload.data8Bit.push_back(inputFrame.decodedFrame[k]);
-                k++;
-            }
-            ret.packetVars.insert(std::pair<std::string, std::string>("addressHex", addressHex));
             return ret;
         }
         PacketDecoder::packetDecoder_result PacketDecoder::decode_BD(decoder::Decoder::decoder_result inputFrame, int* pos) {
@@ -827,30 +897,8 @@ namespace inmarsatc {
                     return "Unknown";
             }
         }
-        int PacketDecoder::getAddressLength(int messageType) {
-            switch (messageType) {
-                case 0x00:
-                    return 3;
-                case 0x11:
-                case 0x31:
-                    return 4;
-                case 0x02:
-                case 0x72:
-                    return 5;
-                case 0x13:
-                case 0x23:
-                case 0x33:
-                case 0x73:
-                    return 6;
-                case 0x04:
-                case 0x14:
-                case 0x24:
-                case 0x34:
-                case 0x44:
-                    return 7;
-                default:
-                    return 3;
-            }
+        int PacketDecoder::getAddressLength(int serviceCode) {
+            return serviceCode & 0xf; // Address length is in lower nibble of service code
         }
         bool PacketDecoder::IsBinary(std::vector<uint8_t> data, bool checkAll) {
             bool isBinary = false;
@@ -1190,7 +1238,11 @@ namespace inmarsatc {
                 commandString = "Delete DNID";
                 break;
             default:
-                commandString = "Unknown: " + std::to_string(command);
+                if ((command >= 0x0c) && (command <= 0x3f))
+                    commandString = "Reserved: " + std::to_string(command);
+                else {
+                    commandString = "User defined: " + std::to_string(command);
+                }
                 break;
             }
             return commandString;
@@ -1216,6 +1268,188 @@ namespace inmarsatc {
                 break;
             }
             return responseString;
+        }
+        std::string PacketDecoder::getRequestStatusCodeAsText(uint8_t statusCode)
+        {
+            std::string statusCodeString;
+            switch (statusCode)
+            {
+            case 0x01:
+                statusCodeString = "LES Message Store Full";
+                break;
+            case 0x02:
+                statusCodeString = "Requested Destination not Served";
+                break;
+            case 0x03:
+                statusCodeString = "Satellite Congestion";
+                break;
+            case 0x04:
+                statusCodeString = "Terrestrial Congestion";
+                break;
+            case 0x05:
+                statusCodeString = "Requested Service not Provided";
+                break;
+            case 0x06:
+                statusCodeString = "Request in Queue";
+                break;
+            case 0x07:
+                statusCodeString = "Request Barred";
+                break;
+            case 0x08:
+                statusCodeString = "MES not logged in";
+                break;
+            case 0x09:
+                statusCodeString = "MES not Commissioned";
+                break;
+            case 0x0a:
+                statusCodeString = "Waiting TDM Assignment";
+                break;
+            case 0x0b:
+                statusCodeString = "Illegal Request";
+                break;
+            case 0x0c:
+                statusCodeString = "LES not in service";
+                break;
+            case 0x0d:
+                statusCodeString = "Requested service temporarily unavailable";
+                break;
+            case 0x0e:
+                statusCodeString = "Access to requested service denied";
+                break;
+            case 0x0f:
+                statusCodeString = "Invalid service";
+                break;
+            case 0x10:
+                statusCodeString = "Invalid address (in assignment request)";
+                break;
+            case 0x11:
+                statusCodeString = "Unable to decode: specified dictionary version not available";
+                break;
+            case 0x12:
+                statusCodeString = "IWU number is invalid";
+                break;
+            case 0x13:
+                statusCodeString = "MES has not subscribed to this service";
+                break;
+            case 0x14:
+                statusCodeString = "Protocol version not supported";
+                break;
+            case 0x15:
+                statusCodeString = "PSTN modem type not supported";
+                break;
+            case 0x16:
+                statusCodeString = "Unrecognised PDU type";
+                break;
+            default:
+                statusCodeString = "Spare: " + std::to_string(statusCode);
+                break;
+            }
+            return statusCodeString;
+        }
+        std::string PacketDecoder::getServiceAsText(uint8_t service)
+        {
+            std::string serviceString;
+            switch (service)
+            {
+            case 0x00:
+                serviceString = "Store-and-Forward";
+                break;
+            case 0x01:
+                serviceString = "Half-duplex data";
+                break;
+            case 0x02:
+                serviceString = "Reserved for circuit switched data (no ARQ)";
+                break;
+            case 0x03:
+                serviceString = "Reserved for circuit switched data (with ARQ)";
+                break;
+            case 0x0e:
+                serviceString = "Message-Performance Verification";
+                break;
+            case 0x0f:
+                serviceString = "Reserved";
+                break;
+            default:
+                serviceString = "Spare: " + std::to_string(service);
+                break;
+            }
+            return serviceString;
+        }
+        std::string PacketDecoder::getDirectionAsText(uint8_t direction)
+        {
+            std::string directionString;
+            switch (direction)
+            {
+            case 0x00:
+                directionString = "To-Mobile";
+                break;
+            case 0x01:
+                directionString = "From-Mobile";
+                break;
+            case 0x02:
+                directionString = "Spare";
+                break;
+            case 0x03:
+                directionString = "Both directions";
+                break;
+            }
+            return directionString;
+        }
+        std::string PacketDecoder::getPriorityAsText(uint8_t priority)
+        {
+            std::string priorityString;
+            switch (priority)
+            {
+            case 0x00:
+                priorityString = "Routine";
+                break;
+            case 0x03:
+                priorityString = "Distress";
+                break;
+            default:
+                priorityString = "Spare: " + std::to_string(priority);
+                break;
+            }
+            return priorityString;
+        }
+        std::string PacketDecoder::getPresentationAsText(uint8_t presentation)
+        {
+            std::string presentationString;
+            switch (presentation)
+            {
+            case 0x00:
+                presentationString = "IA number 5, odd parity";
+                break;
+            case 0x01:
+            case 0x02:
+            case 0x03:
+            case 0x04:
+            case 0x05:
+                presentationString = "Reserved: " + std::to_string(presentation);
+                break;
+            case 0x06:
+                presentationString = "ITA 2";
+                break;
+            case 0x07:
+                presentationString = "Data";
+                break;
+            case 0x80:
+                presentationString = "Basic X.400";
+                break;
+            case 0x81:
+                presentationString = "Unregistered MTA Service";
+                break;
+            case 0x82:
+                presentationString = "Registered MTA Service";
+                break;
+            case 0x83:
+                presentationString = "Mailbox Service";
+                break;
+            default:
+                presentationString = "Spare: " + std::to_string(presentation);
+                break;
+            }
+            return presentationString;
         }
         //END CLASS PacketDecoder
 
@@ -1280,6 +1514,10 @@ namespace inmarsatc {
                 case 0x92:
                     ret = packetDecoder->decode_92(inputFrame, pos);
                     break;
+                //93 - Logout Ack.
+                case 0x93:
+                    ret = packetDecoder->decode_93(inputFrame, pos);
+                    break;
                 //9A - Enhanced Data Report Ack.
                 case 0x9A:
                     ret = packetDecoder->decode_9A(inputFrame, pos);
@@ -1287,6 +1525,14 @@ namespace inmarsatc {
                 //A0 - Distress Test Request
                 case 0xA0:
                     ret = packetDecoder->decode_A0(inputFrame, pos);
+                    break;
+                //A1 - Area Poll
+                case 0xA1:
+                    ret = packetDecoder->decode_A1(inputFrame, pos);
+                    break;
+                //A2 - Group Poll
+                case 0xA2:
+                    ret = packetDecoder->decode_A2(inputFrame, pos);
                     break;
                 //A3 - Individual Poll
                 case 0xA3:
@@ -1312,13 +1558,17 @@ namespace inmarsatc {
                 case 0xAD:
                     ret = packetDecoder->decode_AD(inputFrame, pos);
                     break;
+                //B0 - EGC single header
+                case 0xB0:
+                    ret = packetDecoder->decode_EGC(inputFrame, pos);
+                    break;
                 //B1 - EGC double header, part 1 (16 bytes of data)
                 case 0xB1:
-                    ret = packetDecoder->decode_B1(inputFrame, pos);
+                    ret = packetDecoder->decode_EGC(inputFrame, pos);
                     break;
                 //B2 - EGC double header, part 2
                 case 0xB2:
-                    ret = packetDecoder->decode_B2(inputFrame, pos);
+                    ret = packetDecoder->decode_EGC(inputFrame, pos);
                     break;
                 //BD - Multiframe Packet
                 case 0xBD:
