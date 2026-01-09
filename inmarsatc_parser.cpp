@@ -734,40 +734,43 @@ namespace inmarsatc {
         }
         std::string PacketDecoder::getLesName(int sat, int lesId) {
             int value = lesId + sat * 100;
+            // First digit gives region:
+            //  0: AOR-W
+            //  1: AOR-E
+            //  2: POR
+            //  3: IOR
             std::string name;
             switch (value) {
-                case 001:
-                case 101:
-                case 201:
-                case 301:
-                    name = "Vizada-Telenor, USA";
-                    break;
-
-                case 002:
+                case   2:
+                case  12:
                 case 102:
-                case 302:
-                    name = "Stratos Global (Burum-2), Netherlands";
-                    break;
-
+                case 112:
                 case 202:
-                    name = "Stratos Global (Aukland), New Zealand";
+                case 212:
+                case 302:
+                case 312:
+                    name = "Burum, Inmarsat, Netherlands";
                     break;
 
-                case 003:
+                case   3:
                 case 103:
                 case 203:
                 case 303:
-                    name = "KDDI Japan";
+                    name = "Yamaguchi, KDDI, Japan";
                     break;
 
-                case 004:
+                case   1:
+                case   4:
+                case 101:
                 case 104:
+                case 201:
                 case 204:
+                case 301:
                 case 304:
-                    name = "Vizada-Telenor, Norway";
+                    name = "Eik, Consat Marlink, Norway";
                     break;
 
-                case 044:
+                case  44:
                 case 144:
                 case 244:
                 case 344:
@@ -776,7 +779,7 @@ namespace inmarsatc {
 
                 case 105:
                 case 335:
-                    name = "Telecom, Italia";
+                    name = "Fucino, Telecom Italia, Italy";
                     break;
 
                 case 305:
@@ -784,8 +787,9 @@ namespace inmarsatc {
                     name = "OTESTAT, Greece";
                     break;
 
+                case 206:
                 case 306:
-                    name = "VSNL, India";
+                    name = "Ghaziabad, BSNL, India";
                     break;
 
                 case 110:
@@ -795,14 +799,7 @@ namespace inmarsatc {
 
                 case 211:
                 case 311:
-                    name = "Beijing MCN, China";
-                    break;
-
-                case 012:
-                case 112:
-                case 212:
-                case 312:
-                    name = "Stratos Global (Burum), Netherlands";
+                    name = "Beijing, MCN, China";
                     break;
 
                 case 114:
@@ -817,14 +814,14 @@ namespace inmarsatc {
                 case 117:
                 case 217:
                 case 317:
-                    name = "Morsviazsputnik, Russia";
+                    name = "Nudol, Marsat, Russia";
                     break;
 
-                case 021:
+                case  21:
                 case 121:
                 case 221:
                 case 321:
-                    name = "Vizada (FT), France";
+                    name = "Assaguel, Marlink, France";
                     break;
 
                 case 127:
@@ -838,7 +835,7 @@ namespace inmarsatc {
                     break;
 
                 case 330:
-                    name = "VISHIPEL, Vietnam";
+                    name = "Hai Phong, Vishipel, Vietnam";
                     break;
 
                 default:
