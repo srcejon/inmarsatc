@@ -733,12 +733,16 @@ namespace inmarsatc {
             }
         }
         std::string PacketDecoder::getLesName(int sat, int lesId) {
-            int value = lesId + sat * 100;
             // First digit gives region:
             //  0: AOR-W
             //  1: AOR-E
             //  2: POR
             //  3: IOR
+            int value = lesId + sat * 100;
+            // LES IDs x00-x43. NCS IDs x44-x63.
+            if (lesId >= 44) {
+                return std::to_string(value) + ", NCS";
+            }
             // LES names from Oct 2020:
             // https://iho.int/uploads/user/Inter-Regional%20Coordination/WWNWS/WWNWS13/WWNWS13_2021_INF.1_EN_NCSR8-9-1-Analysis_and_assessment_of_the_GMDSS_performance_of_Inmarsat_Global_Limited.pdf
             // Plus some historic
@@ -771,13 +775,6 @@ namespace inmarsatc {
                 case 301:
                 case 304:
                     name = "Eik, Consat Marlink, Norway";
-                    break;
-
-                case  44:
-                case 144:
-                case 244:
-                case 344:
-                    name = "NCS";
                     break;
 
                 case 105:
